@@ -19,7 +19,8 @@ def utc(value):
     return parsed.astimezone(timezone.utc)
 
 
-def predict(artifact, home, away):
+def score_grid(artifact, home, away):
+    """Raw exact-score distribution. 1X2 temperature does not calibrate AH/OU."""
     if home == away or home not in artifact['team_counts'] or away not in artifact['team_counts']:
         raise ValueError('team_unseen_in_training')
     if min(artifact['team_counts'][home], artifact['team_counts'][away]) < 15:
@@ -34,7 +35,7 @@ def predict(artifact, home, away):
     for k in range(1, 20):
         ph.append(ph[-1] * lh / k)
         pa.append(pa[-1] * la / k)
-    probs = dict.fromkeys(OUTCOMES, 0.0)
+    cells = []
     for h in range(20):
         for a in range(20):
             factor = (1 - rho * lh * la if (h, a) == (0, 0) else
@@ -43,12 +44,19 @@ def predict(artifact, home, away):
                       1 - rho if (h, a) == (1, 1) else 1)
             if factor < 0:
                 raise ValueError('invalid_dc_correction')
-            outcome = 'home' if h > a else 'away' if a > h else 'draw'
-            probs[outcome] += ph[h] * pa[a] * factor
-    total = sum(probs.values())
+            cells.append((h, a, ph[h] * pa[a] * factor))
+    total = sum(p for _, _, p in cells)
     if not 0.999 < total <= 1.00001:
         raise ValueError('score_grid_tail_too_large')
-    raw = {k: p / total for k, p in probs.items()}
+    return [(h, a, p / total) for h, a, p in cells]
+
+
+def predict(artifact, home, away):
+    probs = dict.fromkeys(OUTCOMES, 0.0)
+    for h, a, p in score_grid(artifact, home, away):
+        outcome = 'home' if h > a else 'away' if a > h else 'draw'
+        probs[outcome] += p
+    raw = probs
     temperature = artifact.get('temperature', 1.0)
     if not 0.5 <= temperature <= 3:
         raise ValueError('invalid_temperature')

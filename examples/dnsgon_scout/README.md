@@ -37,6 +37,31 @@ Mô hình xác suất đã kiểm định chỉ áp dụng EPL 1X2.
 
 ## Nguồn Fun88 và dữ liệu LoL, bổ sung 25/10/2026
 
+### Phân tích kèo và bối cảnh đội, cập nhật tiếp 25/10/2026
+
+`market_analysis.py` và `analysis_reports.py` đã nối model EPL với bảng kèo Fun88:
+1X2 giữ xác suất hiệu chỉnh riêng; AH/OU dùng phân bố tỷ số thô, tách rõ thắng đủ,
+thắng nửa, hòa tiền, thua nửa và thua đủ. Báo xác suất có lời, giá hòa vốn,
+EV trên đơn vị vốn trước chi phí. Chưa dùng EV để tuyên bố kèo có lợi thế.
+Đối chiếu đúng giải/cặp đội/giờ đá với lịch FPL, từ chối model/quote cũ hoặc đội thiếu lịch sử.
+
+`team_context.py` đọc cờ tình trạng cầu thủ từ FPL chính thức; chỉ hiển thị bối cảnh,
+chưa tự sửa xác suất từ tin tức hoặc coi cờ FPL là đội hình xuất phát xác nhận.
+Thẻ phân tích riêng chống gửi trùng và giữ phân tích trước trận đầu tiên.
+Các snapshot hiện thời/context tạm chỉ giữ 7 ngày, giữ nguyên phân tích đầu tiên và marker tin đã gửi.
+
+Lượt live: 4 trận, 28 cửa; một trận không đủ lịch sử. Đã gửi và đọc lại bốn thẻ thật
+trong kênh riêng. 197 kiểm tra qua trên Windows/Ubuntu, parity 27 hợp đồng với wheel
+1.13.1 sai số <1e-10, runtime thử khoảng 26 MB. Các dịch vụ thu chi hiện có vẫn active.
+
+`evaluate_markets.py` kiểm tra thăm dò 362 trận mùa 2025/26 với 9 hợp đồng cố định,
+fit lại hàng tháng bằng dữ liệu ba năm trước mốc. Không có odds lịch sử nên không tính ROI.
+Tài 2.5 có Brier biến cố lời 0.2524, chưa tốt hơn mức 0.25 của dự báo 50/50;
+nhóm ≥75% ở một số cửa home chỉ có 10 mẫu. AH/OU vẫn chưa có trạng thái đủ điều kiện tự khuyến nghị.
+
+Xem [MARKET-RESEARCH.md](MARKET-RESEARCH.md) và [market-validation.json](market-validation.json).
+Model độc lập cho các giải nhỏ và LoL chưa được triển khai; không áp kiểm định EPL sang đó.
+
 - `fun88.py`: đọc bảng kèo **khách công khai**, không cần tài khoản nhà cái.
   Nhận 1X2, chấp châu Á và tài/xỉu 90 phút; chỉ trận chưa bắt đầu trong ngày Việt Nam.
   Loại Cyberbattle/bóng ảo, kèo phạt góc, market khóa, giá sai định dạng và hợp đồng mơ hồ.
@@ -122,6 +147,8 @@ Tạo file config **ngoài Git**, quyền 0600, với các trường:
   "today_only": true,
   "send_daily_calendar": false,
   "enable_fun88_guest": true,
+  "enable_market_analysis": true,
+  "send_market_analysis_cards": true,
   "fun88_pages": 8,
   "send_fun88_watch_cards": true,
   "telegram_token": "FILL_LOCALLY",

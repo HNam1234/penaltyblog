@@ -120,9 +120,11 @@ class WatchPipeline(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             store=Store(Path(temp)/'state.db')
             old=NOW-timedelta(days=9)
-            for provider in ['fun88:page:1','fun88:cursor','fun88:results:555','fun88:card:fun88:100','independent_model:old']:
+            for provider in ['fun88:page:1','fun88:cursor','fun88:results:555','fun88:card:fun88:100',
+                             'analysis:current','analysis:prematch:100','context:fpl:availability','independent_model:old']:
                 store.snapshot(provider,{},old)
-            self.assertEqual(store.prune_fun88_observations(NOW-timedelta(days=7)),3)
+            self.assertEqual(store.prune_fun88_observations(NOW-timedelta(days=7)),5)
+            self.assertIsNotNone(store.latest_snapshot('analysis:prematch:100'))
             self.assertIsNotNone(store.latest_snapshot('fun88:card:fun88:100'))
             self.assertIsNotNone(store.latest_snapshot('independent_model:old'))
             store.close()

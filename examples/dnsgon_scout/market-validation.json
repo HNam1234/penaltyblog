@@ -1,0 +1,202 @@
+{
+  "evaluation": "exploratory_fixed_contract_monthly_walk_forward",
+  "test_period": [
+    "2025-08-01",
+    "2026-05-31"
+  ],
+  "fit": "rolling_prior_three_years_before_first_day_of_month",
+  "probability_basis": "raw_Dixon_Coles_score_grid_no_AH_OU_calibration",
+  "historical_odds_used": false,
+  "profitability_evaluated": false,
+  "alert_eligibility_changed": false,
+  "limitations": [
+    "retrospective_current_edition_data_not_live_vintage",
+    "fixed_lines_not_actual_historical_bookmaker_markets",
+    "monthly_refit_differs_from_live_daily_refit",
+    "within_team_and_across_contract_dependence_no_independent_trials_claim"
+  ],
+  "skipped_matches": {
+    "team_unseen_in_training": 3,
+    "insufficient_team_history": 15
+  },
+  "contracts": {
+    "('asian_handicap', 'home', 0.0)": {
+      "count": 362,
+      "naive_50pct_profit_event_brier": 0.25,
+      "in_sample_constant_profit_event_brier_reference": 0.24401727663990722,
+      "reference_note": "Reference uses full held-out prevalence, not a deployable baseline fit; descriptive comparison only.",
+      "settlement_brier_5way": 0.6138595881171671,
+      "profit_event_brier": 0.21866979209931495,
+      "log_loss_5way": 1.0228525924498693,
+      "outcome_counts": {
+        "win": 153,
+        "push": 97,
+        "loss": 112
+      },
+      "p_profit_at_least_75": {
+        "count": 10,
+        "profitable_outcomes": 9,
+        "mean_predicted": 0.798783931719188,
+        "observed_rate": 0.9
+      }
+    },
+    "('asian_handicap', 'home', -0.5)": {
+      "count": 362,
+      "naive_50pct_profit_event_brier": 0.25,
+      "in_sample_constant_profit_event_brier_reference": 0.24401727663990722,
+      "reference_note": "Reference uses full held-out prevalence, not a deployable baseline fit; descriptive comparison only.",
+      "settlement_brier_5way": 0.4373395841986299,
+      "profit_event_brier": 0.21866979209931495,
+      "log_loss_5way": 0.6257063689126724,
+      "outcome_counts": {
+        "win": 153,
+        "loss": 209
+      },
+      "p_profit_at_least_75": {
+        "count": 10,
+        "profitable_outcomes": 9,
+        "mean_predicted": 0.798783931719188,
+        "observed_rate": 0.9
+      }
+    },
+    "('asian_handicap', 'home', -0.75)": {
+      "count": 362,
+      "naive_50pct_profit_event_brier": 0.25,
+      "in_sample_constant_profit_event_brier_reference": 0.24401727663990722,
+      "reference_note": "Reference uses full held-out prevalence, not a deployable baseline fit; descriptive comparison only.",
+      "settlement_brier_5way": 0.5353331582913784,
+      "profit_event_brier": 0.2186697920993149,
+      "log_loss_5way": 0.9119913842567656,
+      "outcome_counts": {
+        "win": 85,
+        "loss": 209,
+        "half_win": 68
+      },
+      "p_profit_at_least_75": {
+        "count": 10,
+        "profitable_outcomes": 9,
+        "mean_predicted": 0.798783931719188,
+        "observed_rate": 0.9
+      }
+    },
+    "('asian_handicap', 'home', -1.0)": {
+      "count": 362,
+      "naive_50pct_profit_event_brier": 0.25,
+      "in_sample_constant_profit_event_brier_reference": 0.1796724764201337,
+      "reference_note": "Reference uses full held-out prevalence, not a deployable baseline fit; descriptive comparison only.",
+      "settlement_brier_5way": 0.5353331582913784,
+      "profit_event_brier": 0.16453329553878182,
+      "log_loss_5way": 0.9119913842567656,
+      "outcome_counts": {
+        "win": 85,
+        "loss": 209,
+        "push": 68
+      },
+      "p_profit_at_least_75": {
+        "count": 0,
+        "profitable_outcomes": 0,
+        "mean_predicted": null,
+        "observed_rate": null
+      }
+    },
+    "('total_goals', 'over', 2.0)": {
+      "count": 362,
+      "naive_50pct_profit_event_brier": 0.25,
+      "in_sample_constant_profit_event_brier_reference": 0.246306584048106,
+      "reference_note": "Reference uses full held-out prevalence, not a deployable baseline fit; descriptive comparison only.",
+      "settlement_brier_5way": 0.5975901165044789,
+      "profit_event_brier": 0.2524301653205389,
+      "log_loss_5way": 1.0012141598654367,
+      "outcome_counts": {
+        "win": 203,
+        "loss": 75,
+        "push": 84
+      },
+      "p_profit_at_least_75": {
+        "count": 0,
+        "profitable_outcomes": 0,
+        "mean_predicted": null,
+        "observed_rate": null
+      }
+    },
+    "('total_goals', 'over', 2.25)": {
+      "count": 362,
+      "naive_50pct_profit_event_brier": 0.25,
+      "in_sample_constant_profit_event_brier_reference": 0.246306584048106,
+      "reference_note": "Reference uses full held-out prevalence, not a deployable baseline fit; descriptive comparison only.",
+      "settlement_brier_5way": 0.5975901165044789,
+      "profit_event_brier": 0.2524301653205389,
+      "log_loss_5way": 1.0012141598654367,
+      "outcome_counts": {
+        "win": 203,
+        "loss": 75,
+        "half_loss": 84
+      },
+      "p_profit_at_least_75": {
+        "count": 0,
+        "profitable_outcomes": 0,
+        "mean_predicted": null,
+        "observed_rate": null
+      }
+    },
+    "('total_goals', 'over', 2.5)": {
+      "count": 362,
+      "naive_50pct_profit_event_brier": 0.25,
+      "in_sample_constant_profit_event_brier_reference": 0.246306584048106,
+      "reference_note": "Reference uses full held-out prevalence, not a deployable baseline fit; descriptive comparison only.",
+      "settlement_brier_5way": 0.5048603306410778,
+      "profit_event_brier": 0.2524301653205389,
+      "log_loss_5way": 0.6989856173325395,
+      "outcome_counts": {
+        "win": 203,
+        "loss": 159
+      },
+      "p_profit_at_least_75": {
+        "count": 0,
+        "profitable_outcomes": 0,
+        "mean_predicted": null,
+        "observed_rate": null
+      }
+    },
+    "('total_goals', 'over', 2.75)": {
+      "count": 362,
+      "naive_50pct_profit_event_brier": 0.25,
+      "in_sample_constant_profit_event_brier_reference": 0.246306584048106,
+      "reference_note": "Reference uses full held-out prevalence, not a deployable baseline fit; descriptive comparison only.",
+      "settlement_brier_5way": 0.6635762731605481,
+      "profit_event_brier": 0.25243016532053886,
+      "log_loss_5way": 1.0940596208658184,
+      "outcome_counts": {
+        "win": 106,
+        "loss": 159,
+        "half_win": 97
+      },
+      "p_profit_at_least_75": {
+        "count": 0,
+        "profitable_outcomes": 0,
+        "mean_predicted": null,
+        "observed_rate": null
+      }
+    },
+    "('total_goals', 'over', 3.0)": {
+      "count": 362,
+      "naive_50pct_profit_event_brier": 0.25,
+      "in_sample_constant_profit_event_brier_reference": 0.207075486096273,
+      "reference_note": "Reference uses full held-out prevalence, not a deployable baseline fit; descriptive comparison only.",
+      "settlement_brier_5way": 0.6635762731605481,
+      "profit_event_brier": 0.21239852347135346,
+      "log_loss_5way": 1.0940596208658184,
+      "outcome_counts": {
+        "win": 106,
+        "loss": 159,
+        "push": 97
+      },
+      "p_profit_at_least_75": {
+        "count": 0,
+        "profitable_outcomes": 0,
+        "mean_predicted": null,
+        "observed_rate": null
+      }
+    }
+  }
+}

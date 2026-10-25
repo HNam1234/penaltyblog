@@ -48,6 +48,7 @@ def scan(config, store, now=None, api=None, clock=None, budget_seconds=100):
     previous = store.latest_snapshot('fun88:cursor')
     cursor = max(limit + 1, int(previous['data'].get('next_page', limit + 1))) if previous else limit + 1
     stats_calls, stats_available = 0, 0
+    analysis_report = {'enabled':False}
     status = 'observed_partial'
     try:
         # Main pages plus two rotating pages: never claim complete coverage.
@@ -119,11 +120,15 @@ def scan(config, store, now=None, api=None, clock=None, budget_seconds=100):
                 queued += store.enqueue(event_key, card(event, stats, at), expiry.isoformat())
                 store.snapshot(event_key, {'at': at.isoformat(), 'informational_only': True}, at.isoformat())
         store.snapshot('fun88:enriched', {'rows': enriched, 'coverage': 'partial', 'qualified_edges': 0}, utc(clock()).isoformat())
+        if config.get('enable_market_analysis',False):
+            from analysis_reports import enrich
+            analysis_report=enrich(config,store,list(collected.values()),utc(clock()),clock)
     except (ProviderError, OSError, ValueError, KeyError, TypeError, OverflowError) as error:
         status = error.code if isinstance(error, ProviderError) else 'fun88_invalid_or_unavailable_data'
     detail = {'events_seen': len(collected), 'competitions_seen': len({e['competition_id'] for e in collected.values()}),
               'pages_scanned': pages, 'total_pages_reported': discovered_pages, 'coverage': 'partial',
               'network_requests': api.calls, 'statistics_enriched': stats_available, 'informational_cards_queued': queued,
-              'qualified_edges': 0, 'filtered': dict(filtered), 'source': SOURCE}
+              'qualified_edges': 0, 'filtered': dict(filtered), 'source': SOURCE,
+              'market_analysis':analysis_report}
     store.record_run(status, detail, utc(clock()).isoformat())
     return {'status': status, **detail}

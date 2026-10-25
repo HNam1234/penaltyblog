@@ -119,11 +119,12 @@ class Store:
         return {'fetched_at': row[0], 'data': json.loads(row[1])} if row else None
 
     def prune_fun88_observations(self, before):
-        """Bound volatile guest observations; retain forecasts and sent-card markers."""
+        """Bound volatile observations; retain first analyses and sent-card markers."""
         with self.db:
             return self.db.execute("DELETE FROM scout_snapshots WHERE fetched_at<? AND "
                                    "(provider LIKE 'fun88:page:%' OR provider='fun88:cursor' OR "
-                                   "provider='fun88:enriched' OR provider LIKE 'fun88:results:%')",
+                                   "provider='fun88:enriched' OR provider LIKE 'fun88:results:%' OR "
+                                   "provider='analysis:current' OR provider='context:fpl:availability')",
                                    (_time(before),)).rowcount
 
     def predictions(self):
