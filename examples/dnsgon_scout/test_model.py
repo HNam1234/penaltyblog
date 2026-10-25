@@ -40,6 +40,12 @@ def final_event():
 
 
 class ModelTests(unittest.TestCase):
+    def test_below_68_is_rejected_and_68_boundary_is_inclusive(self):
+        from unittest.mock import patch
+        for p,expected in ((.679999,False),(.68,True),(.70,True)):
+            with patch('dc_runtime.predict',return_value={'home':p,'draw':(1-p)/2,'away':(1-p)/2}):
+                self.assertEqual(qualify(artifact(),'Club H','Club A',AT)['qualified'],expected)
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.folder = Path(self.temp.name)
@@ -66,7 +72,7 @@ class ModelTests(unittest.TestCase):
     def test_prediction_normalizes_and_does_not_depend_on_market_price(self):
         p = predict(self.model, 'Club H', 'Club A')
         self.assertAlmostEqual(sum(p.values()), 1)
-        self.assertGreater(p['home'], .75)
+        self.assertGreater(p['home'], .68)
         first = self.run_scan()
         self.assertEqual(first['new_forecasts'], 1)
         self.assertEqual(first['model_counts']['new_qualified_alerts'], 1)
@@ -95,7 +101,7 @@ class ModelTests(unittest.TestCase):
     def test_below_threshold_is_stored_for_honest_scoring(self):
         self.model['params']['attack_Club H'] = 0
         self.save(); r = self.run_scan()
-        self.assertEqual(r['model_counts']['below_75_percent'], 1)
+        self.assertEqual(r['model_counts']['below_probability_threshold'], 1)
         self.assertFalse(self.store.predictions()[0]['qualified'])
 
     def test_stale_or_incomplete_team_data_blocks_forecasts(self):

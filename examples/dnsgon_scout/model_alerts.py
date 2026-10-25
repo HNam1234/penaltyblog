@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import re
 
-from dc_runtime import artifact_id, predict, qualify, utc
+from dc_runtime import artifact_id, predict, qualify, utc, MIN_PROBABILITY
 
 
 def literal(value):
@@ -96,7 +96,7 @@ class ModelAlerts:
                     f"Bắt đầu: {kickoff}\n"
                     f"Lựa chọn: {choice}.\n"
                     f"Xác suất mô hình: {probability:.1%}\n\n"
-                    f"Nhóm dự báo ≥75% trong kiểm định lịch sử: {perf['hits']}/{perf['count']} đúng ({perf['hit_rate']:.1%}). "
+                    f"Nhóm dự báo ≥{perf['threshold']:.0%} trong kiểm định lịch sử: {perf['hits']}/{perf['count']} đúng ({perf['hit_rate']:.1%}). "
                     f"Khoảng Wilson 95%: {interval[0]:.1%}–{interval[1]:.1%}.\n"
                     'Kiểm định EPL 2020–2026 theo ngày; chưa phải thành tích live.\n\n'
                     f"Giá mua Yes hiện tại: {quote['best_ask']['price']}; chưa trừ phí.\n"
@@ -194,10 +194,10 @@ def scan(config, store, *, now=None, api=None, clock=None, schedule_fetch=None):
                   '**NHỊP THỂ THAO · ĐÃ BẬT BỘ LỌC DỰ BÁO**\n\n'
                   'Phạm vi: bóng đá EPL, 1X2 trong 90 phút + bù giờ; dữ liệu thị trường công khai Polymarket.\n'
                   + ('Mỗi 5 phút: quét các trận sắp diễn ra trong ngày theo giờ Việt Nam. ' if config.get('today_only')
-                   else 'Mỗi 5 phút: quét có giới hạn, ưu tiên xác suất cao. ') + 'Chỉ báo khi mô hình ≥75%, '
+                   else 'Mỗi 5 phút: quét có giới hạn, ưu tiên xác suất cao. ') + f'Chỉ báo khi mô hình ≥{MIN_PROBABILITY:.0%}, '
                   'chênh mô hình − giá mua ≥3 điểm % trước phí và dữ liệu đủ mới. Không có trận đạt thì giữ im lặng.\n\n'
                   f"Kiểm định lịch sử: {historical['hits']}/{historical['count']} đúng ({historical['hit_rate']:.1%}) "
-                  'trong nhóm mô hình ≥75%. Đây là hồi cứu theo thời gian, không phải thành tích live hay bằng chứng có lãi.\n'
+                  f'trong nhóm mô hình ≥{historical["threshold"]:.0%}. Đây là hồi cứu theo thời gian, không phải thành tích live hay bằng chứng có lãi.\n'
                   f"Dự báo đạt ngưỡng đã có kết quả live: {live['metrics']['count']}.\n"
                   f"Kết quả huấn luyện mới nhất: {model.artifact['latest_result_date']}. "
                   f"Trận quá khứ còn thiếu kết quả: {len(missing)}; đội liên quan sẽ không được đề xuất.\n"

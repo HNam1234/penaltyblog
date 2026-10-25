@@ -24,7 +24,7 @@ def update(output):
     for name,body in [('dataset.csv.gz',raw),('evaluation.json',(json.dumps(report,ensure_ascii=False,indent=2)+'\n').encode())]:
         temp=output/(name+'.tmp');temp.write_bytes(body);temp.replace(output/name)
     return {'status':'research_only','paired_maps':report['data_quality']['paired_maps'],
-            'test':report['test'],'high_75':report['high_75'],'production_alerts_enabled':False}
+            'test':report['test'],'high_probability':report['high_75'],'production_alerts_enabled':False}
 
 
 if __name__=='__main__':

@@ -73,13 +73,23 @@ def cycle(config,source,target,*,clock=None,reviewer=request_review,statuses=mod
             'VPS tự rà soát mỗi **30 phút**, kể cả khi PC tắt.\n'
             f'Model AI: **Luna · Extra high**. Lượt đầu đã kiểm tra {len(packet["models"])} nhóm model; '
             f'{available} nhóm có thể xét tín hiệu.\n\n'
-            '**Điều kiện phát:** xác suất từ model độc lập ≥75%, EV theo model ≥+3%, '
+            f'**Điều kiện phát:** xác suất từ model độc lập ≥{high.MIN_P:.0%}, EV theo model ≥+3%, '
             'đúng lịch trận, giá còn mới, đủ lịch sử; Luna rà soát dữ kiện trước khi gửi.\n'
             'Thông báo có lựa chọn, xác suất, odds, lý do chọn và điểm cần lưu ý.\n\n'
             '**Hiện bật:** EPL 1X2. LoL/BO3/BO5 đã có source nghiên cứu trên VPS; '
             'LoL, Dota 2, CS2, NBA, tennis, bóng chuyền và EPL chấp/tài xỉu còn thiếu feed hoặc kiểm định riêng nên chưa phát tín hiệu.\n\n'
             f'Lượt này: {len(new)} cửa mới qua bộ lọc cứng, {result["qualified_this_run"]} thông báo được xếp gửi. '
             'Không có cửa đủ điều kiện thì im lặng; không tự đặt cược, không hứa chắc thắng.')
+        if high.MIN_P!=.75:
+            threshold_key=f'agent:threshold:{high.MIN_P:.2f}:v1'
+            target.enqueue(threshold_key,
+                '**DNS GỌN · ĐÃ CẬP NHẬT NGƯỠNG**\n\n'
+                f'Ngưỡng xác suất model để xét phát tín hiệu: **{high.MIN_P:.0%}**.\n'
+                'Luna · Extra high tiếp tục rà mỗi **30 phút**; vẫn cần EV theo model ≥+3%, '
+                'giá/dữ liệu mới và đủ lịch sử.\n\n'
+                f'Thống kê lịch sử được tính lại đúng nhóm ngưỡng {high.MIN_P:.0%}; không lấy thành tích ngưỡng cũ thay cho nhóm này. '
+                'EPL 1X2 hiện được phép xét tín hiệu; các môn và kèo chưa kiểm định vẫn giữ ở chế độ nghiên cứu.\n'
+                'Mốc này là xác suất ước lượng của từng cửa, không phải lời hứa tỷ lệ thắng thực tế.')
     return detail
 
 

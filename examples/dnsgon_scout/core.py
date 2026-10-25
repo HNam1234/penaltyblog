@@ -18,7 +18,7 @@ DEFAULTS = {
     "max_clock_skew_seconds": 5,
     "min_reference_books": 3,
     "min_reference_providers": 1,
-    "min_probability": 0.75,
+    "min_probability": 0.68,
     "min_edge": 0.03,
     "max_disagreement": 0.08,
     "min_overround": -0.03,

@@ -13,7 +13,7 @@
 ## Điều kiện và cách giải thích
 
 Chỉ adapter đã đủ điều kiện mới đưa candidate cho Luna: model thống kê độc lập
-chấm xác suất ít nhất 75%, EV theo model ít nhất +3% trước chi phí, quote/analysis
+chấm xác suất ít nhất 68%, EV theo model ít nhất +3% trước chi phí, quote/analysis
 không quá 5 phút, đúng lịch và hợp đồng, đủ dữ liệu lịch sử, trận chưa bắt đầu.
 
 Luna rà soát các candidate và chọn những luận điểm có trong dữ kiện: xác suất,

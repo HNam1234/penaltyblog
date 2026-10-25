@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from high_probability import card,eligible,run,scan
+from high_probability import card,eligible,run,scan,MIN_P,evidence
 from market_analysis import analyze
 from store import Store
 import test_market_analysis as market_tests
@@ -22,6 +22,33 @@ def setup():
 
 
 class Eligibility(unittest.TestCase):
+    def test_new_68_to_75_band_can_pass_with_valid_price_and_history(self):
+        model,fixtures,report=setup()
+        from dc_runtime import predict
+        from market_analysis import analyze
+        helper=market_tests.RealFixtureGates();helper.setUp()
+        low,high=-2.,2.
+        key='attack_'+report['home']
+        for _ in range(60):
+            model['params'][key]=(low+high)/2
+            if predict(model,report['home'],report['away'])['home']<.70:low=model['params'][key]
+            else:high=model['params'][key]
+        helper.event['markets']['1x2']['selections']={
+            'home':{'decimal':1.55,'line':None},'away':{'decimal':7.,'line':None},'draw':{'decimal':5.,'line':None}}
+        report=analyze(helper.event,model,fixtures,AT)
+        row=eligible(report,model,fixtures,AT)
+        self.assertAlmostEqual(row['probability'],.70)
+        self.assertEqual(MIN_P,.68)
+        self.assertIn('68%',evidence(row)['model_probability'])
+        self.assertIn('≥68%',evidence(row)['historical_group'])
+
+    def test_old_75_validation_cannot_be_reused_for_68_policy(self):
+        from dc_runtime import artifact_id
+        model,fixtures,report=setup()
+        model['validation']['high_probability']['threshold']=.75
+        report['model_version']=artifact_id(model)
+        with self.assertRaisesRegex(ValueError,'unverified'):eligible(report,model,fixtures,AT)
+
     def test_legacy_dispatch_cannot_bypass_agent_review(self):
         result=run({'channel_id':-1001111111111,'high_probability_channel_id':-1002222222222,
                     'high_probability_dispatch_mode':'agent_30m'},None)
@@ -31,7 +58,7 @@ class Eligibility(unittest.TestCase):
     def test_independent_probability_required_and_fair_price_gate(self):
         model,fixtures,report=setup()
         row=eligible(report,model,fixtures,AT)
-        self.assertGreaterEqual(row['probability'],.75)
+        self.assertGreaterEqual(row['probability'],MIN_P)
         self.assertGreaterEqual(row['expected_net_before_costs'],.03)
         self.assertIn('THỬ NGHIỆM',card(row))
         poor=deepcopy(report)

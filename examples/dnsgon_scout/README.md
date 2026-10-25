@@ -32,7 +32,7 @@ không gộp các license khác vào fork MIT.
   Phạm vi có giới hạn, lịch đổi ngày/mã đội có thể làm bỏ sót trận.
 - Lưu dự báo đầu tiên bất biến trước trận, hash model, thời gian dữ liệu, cả đúng/sai;
   đối chiếu kết quả và báo cáo Brier/log loss/tỷ lệ đúng của mẫu live.
-- Chỉ gửi thẻ thử nghiệm khi xác suất model ≥75%, chênh model − giá mua ≥0,03
+- Chỉ gửi thẻ thử nghiệm khi xác suất model ≥68%, chênh model − giá mua ≥0,03
   **trước phí**, thanh khoản đầu sổ đủ đơn vị tối thiểu, giá ≤5 phút tuổi,
   hai đội có ≥15 trận, dữ liệu kết quả đủ mới và không thiếu trận quá khứ của hai đội.
   Chênh này không phải lợi thế sau phí đã xác minh.
@@ -53,7 +53,7 @@ riêng, giữ lịch sử dự báo trước trận và các kết quả đối 
 đã thu thập, không tạo thêm lượt lấy odds. Kênh nghiên cứu cũ tiếp tục nhận các
 thẻ phân tích; chúng không được tự chuyển thành tín hiệu xác suất cao.
 
-Điều kiện: EPL 1X2 trong ngày Việt Nam, xác suất model độc lập ≥75%,
+Điều kiện: EPL 1X2 trong ngày Việt Nam, xác suất model độc lập ≥68%,
 `probability * decimal_odds - 1 ≥ 0.03` trước chi phí, quote/analysis ≤5 phút,
 lịch FPL ≤15 phút và khớp ID/cặp đội/giờ đá, model ≤36 giờ, đủ lịch sử đội,
 nhóm xác suất cao của kiểm định lịch sử đạt tiêu chuẩn hiện có.
@@ -74,7 +74,7 @@ Tùy chọn config, giữ ngoài Git:
 
 Đã kiểm tra triển khai trên VPS: setup nhận đúng một lần ở kênh riêng,
 bot chỉ có quyền đăng, chạy lại không gửi trùng. 205 kiểm tra Windows/Ubuntu qua;
-4 trận hiện được chấm đều dưới 75%, chưa phát tín hiệu. Các dữ liệu test tổng hợp
+4 trận hiện được chấm đều dưới 68%, chưa phát tín hiệu. Các dữ liệu test tổng hợp
 chỉ chạy trong database tạm của unittest, không đưa vào Telegram production.
 
 ### Phân tích kèo và bối cảnh đội, cập nhật tiếp 25/10/2026
@@ -97,7 +97,7 @@ trong kênh riêng. 197 kiểm tra qua trên Windows/Ubuntu, parity 27 hợp đ�
 `evaluate_markets.py` kiểm tra thăm dò 362 trận mùa 2025/26 với 9 hợp đồng cố định,
 fit lại hàng tháng bằng dữ liệu ba năm trước mốc. Không có odds lịch sử nên không tính ROI.
 Tài 2.5 có Brier biến cố lời 0.2524, chưa tốt hơn mức 0.25 của dự báo 50/50;
-nhóm ≥75% ở một số cửa home chỉ có 10 mẫu. AH/OU vẫn chưa có trạng thái đủ điều kiện tự khuyến nghị.
+nhóm ≥68% ở một số cửa home chỉ có 10 mẫu. AH/OU vẫn chưa có trạng thái đủ điều kiện tự khuyến nghị.
 
 Xem [MARKET-RESEARCH.md](MARKET-RESEARCH.md) và [market-validation.json](market-validation.json).
 Model độc lập cho các giải nhỏ và LoL chưa được triển khai; không áp kiểm định EPL sang đó.
@@ -108,7 +108,7 @@ Model độc lập cho các giải nhỏ và LoL chưa được triển khai; kh
 - `fun88_watch.py`: mỗi lượt đọc 8 trang đầu + 2 trang luân phiên, đánh dấu coverage một phần;
   có thống kê kết quả gần đây theo đúng ID đội, cache 6 giờ, giữ dữ liệu quan sát 7 ngày.
   Nguồn chỉ trả một tập kết quả gần đây, không coi là đủ cả mùa hoặc đủ 5 trận mỗi đội.
-- Tùy chọn thẻ theo dõi odds: tối đa 2/ngày, chỉ cửa có xác suất **suy từ odds** ≥75%,
+- Tùy chọn thẻ theo dõi odds: tối đa 2/ngày, chỉ cửa có xác suất **suy từ odds** ≥68%,
   mỗi đội có ít nhất 3 kết quả gần đây. Đây **không phải thẻ dự báo độc lập hoặc kèo có lợi thế**;
   chúng không được ghi vào bảng dự báo để thổi phồng thành tích model.
 - Dấu chấp được đối chiếu với formatter của giao diện: `home_line = -raw_handicap`,
@@ -137,7 +137,7 @@ Xem [validation.json](validation.json). Sau khi chuẩn hóa tên CLB xuyên cá
 | Mục | Kết quả |
 |---|---:|
 | Mẫu ngoài giai đoạn hiệu chỉnh | 2.190 trận |
-| Nhóm xác suất model ≥75% | 141 trận |
+| Nhóm xác suất model ≥68% | 141 trận |
 | Chọn đúng trong nhóm đó | 118/141 = 83,69% |
 | Khoảng Wilson 95% | 76,71–88,88% |
 | Brier 1X2, toàn mẫu | 0,58402 |
@@ -151,7 +151,7 @@ dự báo; cửa sổ 3 năm, trọng số giảm nửa sau 365 ngày. Không d�
 Đây là **hồi cứu theo thứ tự thời gian**, trên bản lưu dữ liệu tải hiện nay;
 không có bằng chứng các bản dữ liệu tương ứng đã được nhận tại từng ngày lịch sử.
 Số liệu có thể được nguồn sửa lại. Khoảng Wilson mô tả mẫu, chưa điều chỉnh phụ thuộc
-giữa các trận cùng đội. Nhóm ≥75% được tính trước bước lọc theo giá, không phải
+giữa các trận cùng đội. Nhóm ≥68% được tính trước bước lọc theo giá, không phải
 backtest lợi nhuận của các tin Telegram. Chưa kiểm định ROI, phí, trượt giá hay
 khả năng khớp lệnh. Tỷ lệ đúng lịch sử không bảo đảm xác suất tương lai.
 

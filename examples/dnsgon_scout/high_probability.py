@@ -10,11 +10,11 @@ import json
 from math import isfinite
 from pathlib import Path
 
-from dc_runtime import artifact_id,qualify,utc
+from dc_runtime import artifact_id,qualify,utc,MIN_PROBABILITY
 from fun88 import VN
 from model_alerts import literal
 
-MIN_P=.75
+MIN_P=MIN_PROBABILITY
 MIN_EV=.03
 
 
@@ -54,7 +54,7 @@ def eligible(report,artifact,fixtures,now):
     selection=max(probabilities,key=probabilities.get)
     probability=probabilities[selection]
     if probability<MIN_P:
-        raise ValueError('below_75_percent')
+        raise ValueError('below_probability_threshold')
     ev=probability*quotes[selection]-1
     if ev<MIN_EV:
         raise ValueError('model_ev_below_3_percent')
@@ -75,9 +75,9 @@ def eligible(report,artifact,fixtures,now):
 def evidence(row):
     group=row['historical_group']
     items={
-        'model_probability':f"Mô hình Dixon–Coles độc lập chấm cửa này {row['probability']:.1%}; ngưỡng chọn là 75%.",
+        'model_probability':f"Mô hình Dixon–Coles độc lập chấm cửa này {row['probability']:.1%}; ngưỡng chọn là {MIN_P:.0%}.",
         'price_edge':f"Với odds {row['decimal_odds']:.3f}, EV theo model là {row['expected_net_before_costs']:+.1%} trước chi phí, qua ngưỡng +3%.",
-        'historical_group':f"Nhóm dự báo lịch sử ≥75% có {group['count']} mẫu, đúng {group['hit_rate']:.1%}; đây là hồi cứu, chưa phải thành tích đặt cược thật.",
+        'historical_group':f"Nhóm dự báo lịch sử ≥{group['threshold']:.0%} có {group['count']} mẫu, đúng {group['hit_rate']:.1%}; đây là hồi cứu, chưa phải thành tích đặt cược thật.",
         'fresh_data':'Lịch EPL khớp nguồn chính thức, trận chưa bắt đầu; model và giá còn trong giới hạn tuổi dữ liệu.',
     }
     if row.get('team_history'):
@@ -127,7 +127,7 @@ def welcome():
             'Kênh riêng dùng cùng bot DNS Gọn. Agent trên VPS rà soát mỗi 30 phút.\n\n'
             'Điều kiện hiện tại:\n'
             '• EPL, 1X2 trước trận trong ngày Việt Nam.\n'
-            '• Xác suất từ mô hình độc lập ≥75%, không lấy % từ odds để thay model.\n'
+            f'• Xác suất từ mô hình độc lập ≥{MIN_P:.0%}, không lấy % từ odds để thay model.\n'
             '• EV theo mô hình ≥+3% trước chi phí; dữ liệu/giá còn mới, đủ lịch sử đội và lịch chính thức khớp.\n\n'
             'Không có trận qua bộ lọc thì kênh im lặng. Chấp/tài xỉu, giải nhỏ và LoL chưa đủ kiểm định nên chưa phát đề xuất ở đây.\n\n'
             'Báo cáo vẫn là thử nghiệm: không bảo đảm thắng hoặc sinh lời, không tự đặt cược. '

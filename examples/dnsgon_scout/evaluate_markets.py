@@ -18,7 +18,7 @@ CONTRACTS=[('asian_handicap','home',x) for x in (0.,-.5,-.75,-1.)]+[('total_goal
 
 def summarize(rows):
     n=len(rows)
-    high=[r for r in rows if r['probabilities']['win']+r['probabilities']['half_win']>=.75]
+    high=[r for r in rows if r['probabilities']['win']+r['probabilities']['half_win']>=.68]
     def profitable(r):return r['actual'] in ('win','half_win')
     prevalence=sum(profitable(r) for r in rows)/n if n else None
     return {'count':n,
@@ -29,7 +29,7 @@ def summarize(rows):
             'profit_event_brier':sum(((r['probabilities']['win']+r['probabilities']['half_win'])-profitable(r))**2 for r in rows)/n if n else None,
             'log_loss_5way':-sum(log(max(1e-15,r['probabilities'][r['actual']])) for r in rows)/n if n else None,
             'outcome_counts':dict(Counter(r['actual'] for r in rows)),
-            'p_profit_at_least_75':{'count':len(high),'profitable_outcomes':sum(profitable(r) for r in high),
+            'p_profit_at_least_68':{'count':len(high),'profitable_outcomes':sum(profitable(r) for r in high),
                                    'mean_predicted':sum(r['probabilities']['win']+r['probabilities']['half_win'] for r in high)/len(high) if high else None,
                                    'observed_rate':sum(profitable(r) for r in high)/len(high) if high else None}}
 

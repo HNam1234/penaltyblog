@@ -85,7 +85,7 @@ def scan(config, store, now=None, api=None, clock=None, budget_seconds=100):
             if monotonic() - began >= budget_seconds:
                 filtered['stats_time_budget'] += 1
                 break
-            if max(event['market_probabilities'].values()) < .75:
+            if max(event['market_probabilities'].values()) < .68:
                 continue
             key = 'fun88:results:' + event['competition_id']
             cached = store.latest_snapshot(key)

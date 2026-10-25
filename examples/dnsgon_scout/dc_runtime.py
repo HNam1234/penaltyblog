@@ -9,7 +9,7 @@ import json
 from math import exp, isfinite, log
 
 OUTCOMES = ('home', 'draw', 'away')
-MIN_PROBABILITY = 0.75
+MIN_PROBABILITY = 0.68
 
 
 def utc(value):
@@ -110,10 +110,11 @@ def qualify(artifact, home, away, now):
     probabilities = predict(artifact, home, away)
     selection = max(probabilities, key=probabilities.get)
     if probabilities[selection] < MIN_PROBABILITY:
-        return {'qualified': False, 'reason': 'below_75_percent', 'probabilities': probabilities}
+        return {'qualified': False, 'reason': 'below_probability_threshold', 'probabilities': probabilities}
     performance = artifact.get('validation', {}).get('high_probability', {})
     # A descriptive eligibility rule, not statistical certification.
-    if (performance.get('count', 0) < 50 or (performance.get('hit_rate') or 0) < 0.75):
+    if (performance.get('threshold') != MIN_PROBABILITY or performance.get('count', 0) < 50
+            or (performance.get('hit_rate') or 0) < MIN_PROBABILITY):
         return {'qualified': False, 'reason': 'high_probability_group_unverified', 'probabilities': probabilities}
     return {'qualified': True, 'selection': selection, 'probabilities': probabilities,
             'historical_group': performance, 'label': 'Dự báo thử nghiệm, chưa bảo đảm kết quả'}
