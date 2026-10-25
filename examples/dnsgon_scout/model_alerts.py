@@ -130,16 +130,34 @@ class ModelAlerts:
                                'source': 'corroborated_resolved_polymarket_contracts'})
 
 
-def scan(config, store, *, now=None, api=None, clock=None):
+def scan(config, store, *, now=None, api=None, clock=None, schedule_fetch=None):
     from direct_watch import scan as collect
     from core import score_predictions
     clock = clock or (lambda: datetime.now(timezone.utc))
     now = utc(now or clock())
     day = now.astimezone(timezone(timedelta(hours=7))).date().isoformat()
+    schedule = None
+    if config.get('today_only'):
+        from today_fixtures import load, publish
+        try:
+            kwargs = {'fetch': schedule_fetch} if schedule_fetch else {}
+            schedule = load(store, now, clock=clock, **kwargs)
+            publish(store, schedule, now)
+            config = {**config, 'fixture_slugs': [r['slug'] for r in schedule['fixtures']],
+                      'fixture_kickoffs': {r['slug']:r['start_time'] for r in schedule['fixtures']},
+                      'fixture_pairs': {r['slug']:r['home']+' vs. '+r['away'] for r in schedule['fixtures']},
+                      'schedule_status': schedule['status']}
+        except (OSError, RuntimeError, ValueError, KeyError, TypeError):
+            store.record_run('schedule_unavailable', {'source':'official_fpl'}, utc(clock()).isoformat())
+            store.enqueue('schedule-unavailable:' + day,
+                          '**EPL HÔM NAY · CHƯA XÁC NHẬN LỊCH**\n\n'
+                          'Chưa đọc được lịch chính thức còn mới; bộ lọc đề xuất tạm dừng. '
+                          'Đây là lỗi dữ liệu, không có nghĩa hôm nay không có trận.')
+            return {'status':'schedule_unavailable', 'new_forecasts':0}
     try:
         model = ModelAlerts(config['model_file'], store, now)
         model.settle(config['model_results_file'])
-        if config.get('model_data_dir'):
+        if config.get('model_data_dir') and not config.get('today_only'):
             from model_data import CLUB_CODES
             start_year = now.year if now.month >= 7 else now.year-1
             calendar = Path(config['model_data_dir'])/f'{start_year}-{str(start_year+1)[-2:]}.json'
@@ -164,6 +182,9 @@ def scan(config, store, *, now=None, api=None, clock=None):
     report.update(model_counts=dict(model.counts), new_forecasts=model.counts['new_forecasts_locked'],
                   model_id=model.version, live_scored=live['metrics']['count'],
                   fixture_lookup='exact_calendar_slugs' if 'fixture_slugs' in config else 'bounded_series_pages')
+    if schedule:
+        report['schedule'] = {k:schedule[k] for k in ('day','status','source','checked_at','requests','scheduled_count')}
+        report['schedule']['upcoming_count'] = len(schedule['fixtures'])
     store.record_run(report['status'], report, utc(clock()).isoformat())
     historical = model.artifact['validation']['high_probability']
     missing = model.artifact.get('data_coverage', {}).get('missing_past_fixtures', [])
@@ -171,7 +192,8 @@ def scan(config, store, *, now=None, api=None, clock=None):
     store.enqueue('model-daily:' + day,
                   '**NHỊP THỂ THAO · ĐÃ BẬT BỘ LỌC DỰ BÁO**\n\n'
                   'Phạm vi: bóng đá EPL, 1X2 trong 90 phút + bù giờ; dữ liệu thị trường công khai Polymarket.\n'
-                  'Mỗi 5 phút: quét có giới hạn, ưu tiên xác suất cao. Chỉ báo khi mô hình ≥75%, '
+                  + ('Mỗi 5 phút: quét các trận sắp diễn ra trong ngày theo giờ Việt Nam. ' if config.get('today_only')
+                   else 'Mỗi 5 phút: quét có giới hạn, ưu tiên xác suất cao. ') + 'Chỉ báo khi mô hình ≥75%, '
                   'chênh mô hình − giá mua ≥3 điểm % trước phí và dữ liệu đủ mới. Không có trận đạt thì giữ im lặng.\n\n'
                   f"Kiểm định lịch sử: {historical['hits']}/{historical['count']} đúng ({historical['hit_rate']:.1%}) "
                   'trong nhóm mô hình ≥75%. Đây là hồi cứu theo thời gian, không phải thành tích live hay bằng chứng có lãi.\n'

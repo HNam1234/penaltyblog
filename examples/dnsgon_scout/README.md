@@ -8,11 +8,18 @@ huấn luyện. AI hội thoại không được tự bịa xác suất hoặc t
 ## Đang làm gì
 
 - Đọc lịch/kết quả EPL từ [OpenFootball, CC0](https://github.com/openfootball/football.json).
+- Khi bật `today_only`, đọc lịch trong ngày Việt Nam từ JSON công khai của
+  [Fantasy Premier League chính thức](https://fantasy.premierleague.com/fixtures).
+  Cache lịch tối đa 15 phút, ánh xạ đủ 20 đội/380 trận, đối chiếu cặp đội và giờ
+  đá với Gamma trước khi đọc giá. Không đọc được nguồn không được coi là không có trận.
+  Một bản lịch được gửi vào kênh mỗi ngày; dự báo đạt ngưỡng được gửi riêng.
 - Bổ sung kết quả mới bằng API công khai Gamma, chỉ nhận khi tên hai đội/ngày,
   trạng thái kết thúc, tỷ số và cả ba hợp đồng 90 phút đã phân xử cùng khớp.
 - Dùng API công khai Polymarket để đọc giá mua/bán và thanh khoản đầu sổ lệnh.
   Đây là một sàn dự đoán nhị phân, không phải đồng thuận odds từ nhiều nhà cái.
-- Quét mỗi 5 phút; tối đa 20 slug trận và 4 nhóm sổ lệnh/lượt, trong 36 giờ tới.
+- Quét mỗi 5 phút; tối đa 20 slug trận và 4 nhóm sổ lệnh/lượt. Bản triển khai
+  bật `today_only`: chỉ các trận chưa bắt đầu trong ngày theo giờ Việt Nam;
+  chế độ tương thích cũ có cửa sổ 36 giờ.
   Phạm vi có giới hạn, lịch đổi ngày/mã đội có thể làm bỏ sót trận.
 - Lưu dự báo đầu tiên bất biến trước trận, hash model, thời gian dữ liệu, cả đúng/sai;
   đối chiếu kết quả và báo cáo Brier/log loss/tỷ lệ đúng của mẫu live.
@@ -81,6 +88,7 @@ Tạo file config **ngoài Git**, quyền 0600, với các trường:
   "model_file": "/your/state/model/model.json",
   "model_results_file": "/your/state/model-data/resolved-live-results.json",
   "model_data_dir": "/your/state/model-data",
+  "today_only": true,
   "telegram_token": "FILL_LOCALLY",
   "channel_id": "-100YOUR_PRIVATE_CHANNEL_ID",
   "direct_series_ids": ["10188"],

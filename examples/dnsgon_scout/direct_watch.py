@@ -71,6 +71,17 @@ def scan(config, store, *, now=None, api=None, clock=None, rank_event=None, obse
                         if not markets:
                             continue
                         start = timestamp(markets[0]['start_time'])
+                        if (config.get('today_only') and start.astimezone(timezone(timedelta(hours=7))).date()
+                                != now.astimezone(timezone(timedelta(hours=7))).date()):
+                            continue
+                        confirmed = config.get('fixture_kickoffs', {}).get(event.get('slug'))
+                        if confirmed and timestamp(confirmed) != start:
+                            errors.append('kickoff_source_disagreement')
+                            continue
+                        pair = config.get('fixture_pairs', {}).get(event.get('slug'))
+                        if pair and event.get('title') != pair:
+                            errors.append('fixture_identity_disagreement')
+                            continue
                         if start > now + timedelta(hours=36):
                             continue
                         candidates[str(event['id'])] = (event, markets)
@@ -103,7 +114,8 @@ def scan(config, store, *, now=None, api=None, clock=None, rank_event=None, obse
     at = timestamp(clock())
     if observations:
         store.snapshot('polymarket:compact_quote_observations', observations, at.isoformat())
-    status = 'watching_public_prices' if observations else 'feed_unavailable' if errors else 'no_supported_market_in_page'
+    status = ('watching_public_prices' if observations else 'feed_unavailable' if errors else
+              'no_upcoming_today' if config.get('schedule_status') == 'no_upcoming_today' else 'no_supported_market_in_page')
     detail = {'network_requests': calls, 'checked_events': checked, 'observations': len(observations),
               'quote_count': sum(len(w['quotes']) for w in observations),
               'complete_quote_groups': sum(len(w['quotes']) == 3 for w in observations),
@@ -123,7 +135,7 @@ def scan(config, store, *, now=None, api=None, clock=None, rank_event=None, obse
                 observe(observation)
             if config.get('send_price_watch_cards', True):
                 store.enqueue('price-watch:' + vn_day + ':' + observation['event_id'], card(observation), expires.isoformat())
-    elif not previous or previous['status'] != status or previous['detail'].get('errors') != detail['errors']:
+    elif status != 'no_upcoming_today' and (not previous or previous['status'] != status or previous['detail'].get('errors') != detail['errors']):
         store.enqueue('public-feed-state:' + at.isoformat(),
                       '**NHỊP THỂ THAO · NGUỒN CÔNG KHAI**\n\n'
                       f'Trạng thái: `{status}`. Chưa có bảng giá đủ điều kiện từ phạm vi đang đọc. '

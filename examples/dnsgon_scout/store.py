@@ -113,6 +113,11 @@ class Store:
         with self.db:
             return self.db.execute("INSERT OR IGNORE INTO scout_forecasts VALUES (?,?)", (identity, body)).rowcount == 1
 
+    def latest_snapshot(self, provider):
+        row = self.db.execute('SELECT fetched_at,body FROM scout_snapshots WHERE provider=? '
+                              'ORDER BY fetched_at DESC,rowid DESC LIMIT 1', (_text(provider),)).fetchone()
+        return {'fetched_at': row[0], 'data': json.loads(row[1])} if row else None
+
     def predictions(self):
         return [json.loads(row[0]) for row in self.db.execute("SELECT body FROM scout_forecasts ORDER BY rowid")]
 
