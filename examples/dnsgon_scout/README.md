@@ -5,6 +5,15 @@ Nhánh `dnsgon-scout` thêm một worker nhẹ cho VPS 1 GB; giữ model Dixon�
 của upstream, dùng kết quả trận để fit xác suất 1X2. Giá thị trường không đi vào
 huấn luyện. AI hội thoại không được tự bịa xác suất hoặc trận đấu.
 
+## Agent Luna, cập nhật 25/10/2026
+
+Agent trên VPS chạy mỗi 30 phút với `gpt-6-luna` Extra high, rà registry 8 nhóm
+model. Chỉ EPL 1X2 hiện đủ điều kiện xét tín hiệu; các môn khác chưa có feed/model
+đủ kiểm định. Thẻ Telegram có xác suất, odds, EV và lý do từ dữ kiện đã kiểm tra.
+Xem [cách vận hành và giới hạn](AGENT-30M.md). 213 kiểm tra worker/agent và
+6 kiểm tra LoL/series đã qua trên VPS. Source bên thứ ba nằm riêng trên máy chủ,
+không gộp các license khác vào fork MIT.
+
 ## Đang làm gì
 
 - Đọc lịch/kết quả EPL từ [OpenFootball, CC0](https://github.com/openfootball/football.json).

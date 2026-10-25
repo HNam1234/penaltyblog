@@ -22,6 +22,12 @@ def setup():
 
 
 class Eligibility(unittest.TestCase):
+    def test_legacy_dispatch_cannot_bypass_agent_review(self):
+        result=run({'channel_id':-1001111111111,'high_probability_channel_id':-1002222222222,
+                    'high_probability_dispatch_mode':'agent_30m'},None)
+        self.assertFalse(result['enabled'])
+        self.assertIn('agent',result['reason'])
+
     def test_independent_probability_required_and_fair_price_gate(self):
         model,fixtures,report=setup()
         row=eligible(report,model,fixtures,AT)

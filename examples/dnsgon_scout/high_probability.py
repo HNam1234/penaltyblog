@@ -67,11 +67,47 @@ def eligible(report,artifact,fixtures,now):
             'quote_acquired_at':report['quote_acquired_at'],'data_as_of':artifact['trained_at'],
             'model_version':report['model_version'],'method':'independent_dc_epl_highprob_v1',
             'historical_group':result['historical_group'],'label':'experimental_not_guaranteed',
-            'team_context':report.get('team_context',{})}
+            'team_context':report.get('team_context',{}),
+            'team_history':{t:artifact['team_counts'][t] for t in (report['home'],report['away'])},
+            'goal_expectation':report.get('model_goal_expectation')}
+
+
+def evidence(row):
+    group=row['historical_group']
+    items={
+        'model_probability':f"Mô hình Dixon–Coles độc lập chấm cửa này {row['probability']:.1%}; ngưỡng chọn là 75%.",
+        'price_edge':f"Với odds {row['decimal_odds']:.3f}, EV theo model là {row['expected_net_before_costs']:+.1%} trước chi phí, qua ngưỡng +3%.",
+        'historical_group':f"Nhóm dự báo lịch sử ≥75% có {group['count']} mẫu, đúng {group['hit_rate']:.1%}; đây là hồi cứu, chưa phải thành tích đặt cược thật.",
+        'fresh_data':'Lịch EPL khớp nguồn chính thức, trận chưa bắt đầu; model và giá còn trong giới hạn tuổi dữ liệu.',
+    }
+    if row.get('team_history'):
+        items['team_history']='Số trận trong tập huấn luyện: '+', '.join(literal(k)+' '+str(v) for k,v in row['team_history'].items())+'.'
+    if row.get('goal_expectation'):
+        g=row['goal_expectation']
+        items['goal_expectation']=f"Mô hình dự kiến bàn thắng chủ/khách {g['home']:.2f}/{g['away']:.2f}; đây không phải xG từ cú sút."
+    return items
+
+
+CAUTIONS={
+    'lineup_unknown':'Chưa xác nhận đội hình xuất phát; chấn thương/treo giò chưa được đưa vào xác suất.',
+    'model_uncertainty':'Xác suất là ước lượng của model; EV dương chưa chứng minh có lời thực tế.',
+    'price_can_change':'Odds có thể thay đổi sau thời điểm lấy giá.',
+}
+
+
+def candidate_digest(row):
+    stable={k:v for k,v in row.items() if k not in ('created_at','ai_review')}
+    return sha256(json.dumps(stable,sort_keys=True,allow_nan=False).encode()).hexdigest()
 
 
 def card(row):
     chosen={'home':row['home'],'away':row['away'],'draw':'Hòa'}[row['selection']]
+    facts=evidence(row);review=row.get('ai_review',{})
+    reasons=review.get('reason_ids',['model_probability','price_edge','historical_group'])
+    caution_ids=list(dict.fromkeys(['lineup_unknown','model_uncertainty']+review.get('caution_ids',[])))
+    explanation='\n'.join('• '+facts[k] for k in reasons if k in facts)
+    cautions='\n'.join('• '+CAUTIONS[k] for k in caution_ids if k in CAUTIONS)
+    reviewer='\nRà soát: **Luna · Extra high**; AI chọn luận điểm từ dữ kiện, không tự sửa xác suất.\n' if review.get('model')=='gpt-6-luna' else '\n'
     return ('**DNS GỌN · XÁC SUẤT CAO · THỬ NGHIỆM**\n\n'
             f"**{literal(row['home'])} — {literal(row['away'])}**\n"
             f"EPL · {utc(row['start_time']).astimezone(VN):%H:%M %d/%m} VN\n\n"
@@ -80,15 +116,15 @@ def card(row):
             f"Odds Fun88 lúc lấy: **{row['decimal_odds']:.3f}**.\n"
             f"EV theo model trước chi phí: {row['expected_net_before_costs']:+.1%} trên đơn vị vốn.\n"
             f"Giá lấy lúc {utc(row['quote_acquired_at']).astimezone(VN):%H:%M:%S} VN; giá có thể đổi.\n\n"
-            'Đã qua kiểm tra lịch chính thức, tuổi dữ liệu, lịch sử đội và nhóm dự báo lịch sử. '
-            'Đội hình/chấn thương chưa được đưa vào công thức. Đây chưa phải lợi thế sinh lời đã chứng minh.\n'
+            '**Vì sao chọn**\n'+explanation+'\n\n'
+            '**Điểm cần lưu ý**\n'+cautions+'\n'+reviewer+
             f"Mã khóa trước trận: `{row['id']}`; giữ cả kết quả đúng và sai.\n"
             '[Source và giới hạn](https://github.com/HNam1234/penaltyblog/tree/dnsgon-scout/examples/dnsgon_scout)')
 
 
 def welcome():
     return ('**DNS GỌN · ĐÃ BẬT KÊNH XÁC SUẤT CAO**\n\n'
-            'Kênh riêng dùng cùng bot DNS Gọn. VPS kiểm tra mỗi 5 phút.\n\n'
+            'Kênh riêng dùng cùng bot DNS Gọn. Agent trên VPS rà soát mỗi 30 phút.\n\n'
             'Điều kiện hiện tại:\n'
             '• EPL, 1X2 trước trận trong ngày Việt Nam.\n'
             '• Xác suất từ mô hình độc lập ≥75%, không lấy % từ odds để thay model.\n'
@@ -121,10 +157,9 @@ def settle(config,store,now):
     return count
 
 
-def scan(config,source,store,now=None):
-    now=utc(now or datetime.now(timezone.utc));counts=Counter();reports=[]
-    store.enqueue('highprob:setup:v1',welcome())
-    status='ready_no_qualifying_match'
+def collect(config,source,now):
+    """Pure eligibility preview, with no forecast/outbox writes."""
+    now=utc(now);counts=Counter();reports=[];rows=[];status='ready_no_qualifying_match'
     try:
         artifact=json.loads(Path(config['model_file']).read_text(encoding='utf-8'))
         snapshot=source.latest_snapshot('analysis:current')
@@ -137,20 +172,35 @@ def scan(config,source,store,now=None):
         for report in reports:
             try:
                 row=eligible(report,artifact,fixtures['data'],now)
-                if store.forecast(row):
-                    counts['first_forecasts_locked']+=1
-                stored=next(p for p in store.predictions() if p['id']==row['id'])
-                if stored['model_version']!=row['model_version'] or stored['probabilities']!=row['probabilities']:
-                    counts['previously_locked_forecast_changed']+=1;continue
-                expiry=min(utc(row['start_time']),utc(row['quote_acquired_at'])+timedelta(minutes=5))
-                counts['alerts_queued']+=store.enqueue('highprob:forecast:'+row['id'],card(stored),expiry.isoformat())
+                rows.append(row)
             except (ValueError,KeyError,TypeError,OverflowError) as error:
                 counts[str(error) if type(error) is ValueError else 'invalid_candidate']+=1
-        if counts['alerts_queued']:status='qualified_alert_queued'
-        counts['results_saved']+=settle(config,store,now)
     except (OSError,ValueError,KeyError,TypeError,OverflowError) as error:
         status=str(error) if type(error) is ValueError else 'highprob_data_unavailable'
-    detail={'analysis_count':len(reports),'counts':dict(counts),'probability_threshold':MIN_P,
+    return rows,{'status':status,'analysis_count':len(reports),'counts':dict(counts),'probability_threshold':MIN_P,
+                 'minimum_model_ev_before_costs':MIN_EV,'scope':'EPL_1X2_only'}
+
+
+def scan(config,source,store,now=None,reviewer=None):
+    now=utc(now or datetime.now(timezone.utc))
+    store.enqueue('highprob:setup:v1',welcome())
+    rows,preview=collect(config,source,now);counts=Counter(preview['counts']);status=preview['status']
+    for row in rows:
+        review=reviewer(row) if reviewer else None
+        if reviewer and review is None:
+            counts['ai_held_or_candidate_changed']+=1;continue
+        if review:row['ai_review']=review
+        if store.forecast(row):counts['first_forecasts_locked']+=1
+        stored=next(p for p in store.predictions() if p['id']==row['id'])
+        if stored['model_version']!=row['model_version'] or stored['probabilities']!=row['probabilities']:
+            counts['previously_locked_forecast_changed']+=1;continue
+        expiry=min(utc(stored['start_time']),utc(stored['quote_acquired_at'])+timedelta(minutes=5))
+        if expiry<=now:counts['locked_forecast_expired']+=1;continue
+        counts['alerts_queued']+=store.enqueue('highprob:forecast:'+row['id'],card(stored),expiry.isoformat())
+    if counts['alerts_queued']:status='qualified_alert_queued'
+    try:counts['results_saved']+=settle(config,store,now)
+    except (OSError,ValueError,KeyError,TypeError):counts['settlement_unavailable']+=1
+    detail={'analysis_count':preview['analysis_count'],'counts':dict(counts),'probability_threshold':MIN_P,
             'minimum_model_ev_before_costs':MIN_EV,'scope':'EPL_1X2_only','qualified_this_run':counts['alerts_queued']}
     store.record_run(status,detail,now.isoformat())
     return {'status':status,**detail}
@@ -163,6 +213,8 @@ def run(config,source,clock=None):
     channel=config.get('high_probability_channel_id')
     if not channel:return {'enabled':False}
     if channel==config['channel_id']:raise ValueError('dedicated_highprob_channel_required')
+    if config.get('high_probability_dispatch_mode')=='agent_30m':
+        return {'enabled':False,'reason':'owned_by_30m_luna_agent'}
     store=Store(config['high_probability_database'])
     try:
         recovered=store.recover_sending()
