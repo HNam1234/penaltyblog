@@ -1,0 +1,49 @@
+{
+  "calibration_period": [
+    "2019-08-01",
+    "2020-07-31"
+  ],
+  "test_period": [
+    "2020-08-01",
+    "2026-05-24"
+  ],
+  "temperature": 1.05,
+  "calibration": {
+    "count": 290,
+    "brier": 0.5804373841433211,
+    "log_loss": 0.9779030696369538,
+    "high_probability": {
+      "threshold": 0.75,
+      "count": 22,
+      "hits": 17,
+      "hit_rate": 0.7727272727272727,
+      "wilson95": [
+        0.5656004682477829,
+        0.8987696001475147
+      ],
+      "mean_probability": 0.8141020177965944
+    }
+  },
+  "validation": {
+    "count": 2190,
+    "brier": 0.5840188487949365,
+    "log_loss": 0.9816431536263671,
+    "high_probability": {
+      "threshold": 0.75,
+      "count": 141,
+      "hits": 118,
+      "hit_rate": 0.8368794326241135,
+      "wilson95": [
+        0.767114020051891,
+        0.8887755351451804
+      ],
+      "mean_probability": 0.8054145869880563
+    }
+  },
+  "skipped": {
+    "insufficient_team_history": 108,
+    "team_unseen_in_training": 6
+  },
+  "evaluation_kind": "retrospective_chronological_no_live_vintage_claim",
+  "profitability_evaluated": false
+}

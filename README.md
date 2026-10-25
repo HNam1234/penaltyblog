@@ -7,6 +7,9 @@
 
 # Penalty Blog
 
+**DNS Gọn fork (`dnsgon-scout`):** [EPL model, chronological evaluation and lightweight private Telegram worker](examples/dnsgon_scout/README.md).
+Experimental forecasts; historical hit rate is not a profit guarantee. The upstream project is preserved below.
+
 <div align="center">
 
 <a href="">[![Python Version](https://img.shields.io/pypi/pyversions/penaltyblog)](https://pypi.org/project/penaltyblog/)</a>

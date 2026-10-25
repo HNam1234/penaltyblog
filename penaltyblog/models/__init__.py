@@ -1,34 +1,28 @@
-from .base_bayesian_model import BaseBayesianModel  # noqa
-from .bayesian_goal_model import BayesianGoalModel  # noqa
-from .bivariate_poisson import BivariatePoissonGoalModel  # noqa
-from .dixon_coles import DixonColesGoalModel  # noqa
-from .football_probability_grid import (  # noqa
-    FootballProbabilityGrid,
-    create_dixon_coles_grid,
-)
-from .goal_expectancy import goal_expectancy, goal_expectancy_extended  # noqa
-from .hierarchical_bayesian_goal_model import (  # noqa
-    HierarchicalBayesianGoalModel,
-)
-from .negative_binomial import NegativeBinomialGoalModel  # noqa
-from .poisson import PoissonGoalsModel  # noqa
-from .utils import dixon_coles_weights  # noqa
-from .weibull_copula import WeibullCopulaGoalsModel  # noqa
-from .zero_inf_poisson import ZeroInflatedPoissonGoalsModel  # noqa
+"""Keep public model names while importing only the requested model."""
+from importlib import import_module
 
-__all__ = [
-    "BaseBayesianModel",
-    "BayesianGoalModel",
-    "BivariatePoissonGoalModel",
-    "create_dixon_coles_grid",
-    "DixonColesGoalModel",
-    "FootballProbabilityGrid",
-    "goal_expectancy",
-    "goal_expectancy_extended",
-    "HierarchicalBayesianGoalModel",
-    "NegativeBinomialGoalModel",
-    "PoissonGoalsModel",
-    "dixon_coles_weights",
-    "WeibullCopulaGoalsModel",
-    "ZeroInflatedPoissonGoalsModel",
-]
+_MODULES = {
+    'BaseBayesianModel': 'base_bayesian_model',
+    'BayesianGoalModel': 'bayesian_goal_model',
+    'BivariatePoissonGoalModel': 'bivariate_poisson',
+    'DixonColesGoalModel': 'dixon_coles',
+    'FootballProbabilityGrid': 'football_probability_grid',
+    'create_dixon_coles_grid': 'football_probability_grid',
+    'goal_expectancy': 'goal_expectancy',
+    'goal_expectancy_extended': 'goal_expectancy',
+    'HierarchicalBayesianGoalModel': 'hierarchical_bayesian_goal_model',
+    'NegativeBinomialGoalModel': 'negative_binomial',
+    'PoissonGoalsModel': 'poisson',
+    'dixon_coles_weights': 'utils',
+    'WeibullCopulaGoalsModel': 'weibull_copula',
+    'ZeroInflatedPoissonGoalsModel': 'zero_inf_poisson',
+}
+__all__ = list(_MODULES)
+
+
+def __getattr__(name):
+    if name not in _MODULES:
+        raise AttributeError(name)
+    value = getattr(import_module('.' + _MODULES[name], __name__), name)
+    globals()[name] = value
+    return value
