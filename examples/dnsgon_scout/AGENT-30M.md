@@ -85,8 +85,11 @@ hạn mức tài khoản, mạng và thời gian VPS được duy trì.
 - Bot thu chi, receiver, gateway, coach và các timer cũ đều active sau triển khai.
 - Lượt đầu đọc 4 phân tích EPL, cả 4 dưới ngưỡng; **0 dự báo kèo thật được tạo**.
 - Setup agent đã gửi đúng một lần, message ID 3, đã đọc lại từ Telegram Desktop.
+- **Lượt 17:30 tự kích hoạt bằng timer đã hoàn tất thành công lúc 17:30:45 VN**,
+  Luna rà đủ 8 nhóm, 0 candidate đủ ngưỡng; outbox không phát sinh tin trùng.
 
-Chi tiết: `runtime-verification.json`, `channel-readback.json`, cùng bản
+Chi tiết: `runtime-verification.json`, `channel-readback.json`,
+`scheduled-run-verification.json`, cùng bản
 `deployment.json` trong thư mục `outputs/sports-scout`.
 
 Triển khai hiện tại có backup cấu hình, code và hai database thể thao dưới
