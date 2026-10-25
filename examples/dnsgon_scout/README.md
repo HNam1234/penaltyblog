@@ -37,6 +37,37 @@ Mô hình xác suất đã kiểm định chỉ áp dụng EPL 1X2.
 
 ## Nguồn Fun88 và dữ liệu LoL, bổ sung 25/10/2026
 
+### Kênh riêng chỉ nhận dự báo xác suất cao
+
+`high_probability.py` dùng cùng bot DNS Gọn với một channel ID riêng, database/outbox
+riêng, giữ lịch sử dự báo trước trận và các kết quả đối chiếu. Tận dụng dữ liệu
+đã thu thập, không tạo thêm lượt lấy odds. Kênh nghiên cứu cũ tiếp tục nhận các
+thẻ phân tích; chúng không được tự chuyển thành tín hiệu xác suất cao.
+
+Điều kiện: EPL 1X2 trong ngày Việt Nam, xác suất model độc lập ≥75%,
+`probability * decimal_odds - 1 ≥ 0.03` trước chi phí, quote/analysis ≤5 phút,
+lịch FPL ≤15 phút và khớp ID/cặp đội/giờ đá, model ≤36 giờ, đủ lịch sử đội,
+nhóm xác suất cao của kiểm định lịch sử đạt tiêu chuẩn hiện có.
+Đối chiếu lại version và xác suất model, không tin phần trăm do nhà cái/AI trả về.
+
+Không có trận qua bộ lọc thì không gửi đề xuất. Chấp/tài xỉu, giải nhỏ và LoL
+chưa đủ kiểm định không được phát vào kênh này. EV dương từ model chưa chứng minh
+lợi nhuận thực tế. Không có chức năng đặt cược, thay đổi tài khoản hoặc gửi tiền.
+
+Tùy chọn config, giữ ngoài Git:
+
+```json
+{
+  "high_probability_channel_id": "-100YOUR_SEPARATE_PRIVATE_CHANNEL_ID",
+  "high_probability_database": "/your/state/high-probability.sqlite3"
+}
+```
+
+Đã kiểm tra triển khai trên VPS: setup nhận đúng một lần ở kênh riêng,
+bot chỉ có quyền đăng, chạy lại không gửi trùng. 205 kiểm tra Windows/Ubuntu qua;
+4 trận hiện được chấm đều dưới 75%, chưa phát tín hiệu. Các dữ liệu test tổng hợp
+chỉ chạy trong database tạm của unittest, không đưa vào Telegram production.
+
 ### Phân tích kèo và bối cảnh đội, cập nhật tiếp 25/10/2026
 
 `market_analysis.py` và `analysis_reports.py` đã nối model EPL với bảng kèo Fun88:

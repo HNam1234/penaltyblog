@@ -191,6 +191,9 @@ def main():
         result = scan(config, store)
         result.update(messages_sent=flush(store, config['telegram_token'], config['channel_id'], datetime.now(UTC).isoformat()),
                       interrupted_messages_held=recovered)
+        if config.get('high_probability_channel_id'):
+            from high_probability import run as highprob_run
+            result['high_probability_channel']=highprob_run(config,store)
         print(json.dumps(result))
 
 
