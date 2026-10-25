@@ -1,4 +1,4 @@
-# DNS Gọn: dự báo EPL và thông báo Telegram
+# DNS Gọn: dự báo EPL, bảng kèo bóng đá và thông báo Telegram
 
 Fork từ [martineastwood/penaltyblog](https://github.com/martineastwood/penaltyblog), MIT.
 Nhánh `dnsgon-scout` thêm một worker nhẹ cho VPS 1 GB; giữ model Dixon–Coles
@@ -12,7 +12,7 @@ huấn luyện. AI hội thoại không được tự bịa xác suất hoặc t
   [Fantasy Premier League chính thức](https://fantasy.premierleague.com/fixtures).
   Cache lịch tối đa 15 phút, ánh xạ đủ 20 đội/380 trận, đối chiếu cặp đội và giờ
   đá với Gamma trước khi đọc giá. Không đọc được nguồn không được coi là không có trận.
-  Một bản lịch được gửi vào kênh mỗi ngày; dự báo đạt ngưỡng được gửi riêng.
+  Bản triển khai tắt tin lịch chung (`send_daily_calendar: false`); dự báo đạt ngưỡng được gửi riêng.
 - Bổ sung kết quả mới bằng API công khai Gamma, chỉ nhận khi tên hai đội/ngày,
   trạng thái kết thúc, tỷ số và cả ba hợp đồng 90 phút đã phân xử cùng khớp.
 - Dùng API công khai Polymarket để đọc giá mua/bán và thanh khoản đầu sổ lệnh.
@@ -32,7 +32,38 @@ huấn luyện. AI hội thoại không được tự bịa xác suất hoặc t
   NumPy/SciPy chỉ chạy trong tác vụ huấn luyện riêng.
 
 Không đặt cược, không có wallet, không nhập tài khoản nhà cái. Không xử lý ngân hàng.
-Chưa có chấn thương, đội hình ra sân, xG hoặc odds nhiều nhà cái; chưa hỗ trợ đa môn.
+Chưa có chấn thương, đội hình ra sân, xG hoặc odds nhiều nhà cái.
+Mô hình xác suất đã kiểm định chỉ áp dụng EPL 1X2.
+
+## Nguồn Fun88 và dữ liệu LoL, bổ sung 25/10/2026
+
+- `fun88.py`: đọc bảng kèo **khách công khai**, không cần tài khoản nhà cái.
+  Nhận 1X2, chấp châu Á và tài/xỉu 90 phút; chỉ trận chưa bắt đầu trong ngày Việt Nam.
+  Loại Cyberbattle/bóng ảo, kèo phạt góc, market khóa, giá sai định dạng và hợp đồng mơ hồ.
+- `fun88_watch.py`: mỗi lượt đọc 8 trang đầu + 2 trang luân phiên, đánh dấu coverage một phần;
+  có thống kê kết quả gần đây theo đúng ID đội, cache 6 giờ, giữ dữ liệu quan sát 7 ngày.
+  Nguồn chỉ trả một tập kết quả gần đây, không coi là đủ cả mùa hoặc đủ 5 trận mỗi đội.
+- Tùy chọn thẻ theo dõi odds: tối đa 2/ngày, chỉ cửa có xác suất **suy từ odds** ≥75%,
+  mỗi đội có ít nhất 3 kết quả gần đây. Đây **không phải thẻ dự báo độc lập hoặc kèo có lợi thế**;
+  chúng không được ghi vào bảng dự báo để thổi phồng thành tích model.
+- Dấu chấp được đối chiếu với formatter của giao diện: `home_line = -raw_handicap`,
+  `away_line = raw_handicap`. Kèo phần tư tách hai nửa để phân biệt thắng/thua nửa và hòa tiền.
+  Không quy đổi đơn giản hai odds chấp/tài xỉu thành xác suất thắng kèo.
+- `esports_stats.py`: cache mô tả LoL từ [ChainCC Open Data](https://chaincc.lol/free/data),
+  **CC BY 4.0**, có ghi công và mô tả phần biến đổi trong artifact.
+  Ghép hai phía của cùng map, loại kết quả mâu thuẫn/thiếu phía; một map không phải một series.
+  Dữ liệu thời gian không ghi timezone nên loại toàn bộ dòng cùng ngày hiện tại;
+  không suy tỷ lệ thắng trận từ win rate 10 map.
+- Lượt thử VPS đọc 197 trận/75 giải trong 10 trang; bản production đầu đọc 198 trận/76 giải,
+  bổ sung thống kê 5 trận. RAM đỉnh riêng bộ đọc khách 26.868 KiB, dưới giới hạn service 96 MB.
+  187 kiểm tra ngoại tuyến qua trên Windows và Ubuntu. Hai thẻ dữ liệu thật đã được nhận
+  và đọc lại ở đúng kênh riêng, không có tin trùng sau triển khai lại.
+- Nguồn LoL có 9.325 map đã ghép hợp lệ của 355 đội trong bản tải 25/10;
+  **chưa có adapter odds LoL tự động hoặc model LoL được kiểm định**. Giao diện TF có
+  kèo xem ở chế độ khách nhưng API trực tiếp trả HTTP 401; không vượt xác thực hoặc dùng
+  cookie/tài khoản của người dùng. Không áp kết quả EPL sang LoL/giải bóng đá khác.
+
+Xem [FUN88-NOTES.md](FUN88-NOTES.md) để biết phạm vi và bằng chứng kiểm tra giao thức.
 
 ## Kiểm định ngày 25/10/2026
 
@@ -89,6 +120,10 @@ Tạo file config **ngoài Git**, quyền 0600, với các trường:
   "model_results_file": "/your/state/model-data/resolved-live-results.json",
   "model_data_dir": "/your/state/model-data",
   "today_only": true,
+  "send_daily_calendar": false,
+  "enable_fun88_guest": true,
+  "fun88_pages": 8,
+  "send_fun88_watch_cards": true,
   "telegram_token": "FILL_LOCALLY",
   "channel_id": "-100YOUR_PRIVATE_CHANNEL_ID",
   "direct_series_ids": ["10188"],
@@ -99,6 +134,12 @@ Tạo file config **ngoài Git**, quyền 0600, với các trường:
 Chạy `python3 scout.py --config /your/private-config.json`. Chỉ thêm bot vào kênh
 riêng do bạn quản lý, quyền đăng bài; không dùng `getUpdates` của bot khác đang chạy.
 `--report` chỉ đọc báo cáo. Chạy định kỳ bằng systemd timer, tránh cron chồng lặp.
+
+Cache thống kê LoL (stdlib, không cần key):
+`python3 esports_stats.py --output /your/state/esports/team-stats.json`.
+Trong bản triển khai, timer riêng chạy khoảng 07:40 và 19:40 Việt Nam;
+file lỗi/cũ không thay thế cache hợp lệ. Đây là dữ liệu chuẩn bị để nối odds sau này,
+chưa phát đề xuất LoL tự động.
 
 Huấn luyện định kỳ:
 `../../.venv/bin/python update_model.py --data /your/state/model-data --output /your/state/model`.

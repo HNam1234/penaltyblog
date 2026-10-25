@@ -69,7 +69,11 @@ def scan(config, store, *, now=None, api=None, clock=None):
     at = now.isoformat()
     if config.get('mode') == 'polymarket_model':
         from model_alerts import scan as model_scan
-        return model_scan(config, store, now=now, api=api, clock=clock)
+        result = model_scan(config, store, now=now, api=api, clock=clock)
+        if config.get('enable_fun88_guest', False) and api is None:
+            from fun88_watch import scan as guest_scan
+            result['fun88'] = guest_scan(config, store, clock=clock)
+        return result
     if config.get('mode') == 'polymarket_watch':
         from direct_watch import scan as direct_scan
         return direct_scan(config, store, now=now, api=api, clock=clock)

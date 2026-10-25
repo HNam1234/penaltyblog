@@ -142,7 +142,8 @@ def scan(config, store, *, now=None, api=None, clock=None, schedule_fetch=None):
         try:
             kwargs = {'fetch': schedule_fetch} if schedule_fetch else {}
             schedule = load(store, now, clock=clock, **kwargs)
-            publish(store, schedule, now)
+            if config.get('send_daily_calendar', True):
+                publish(store, schedule, now)
             config = {**config, 'fixture_slugs': [r['slug'] for r in schedule['fixtures']],
                       'fixture_kickoffs': {r['slug']:r['start_time'] for r in schedule['fixtures']},
                       'fixture_pairs': {r['slug']:r['home']+' vs. '+r['away'] for r in schedule['fixtures']},
